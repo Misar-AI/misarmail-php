@@ -22,17 +22,17 @@ class ContactsResource
 
     public function get(string $id): array
     {
-        return $this->client->request('GET', "/contacts/{$id}");
+        return $this->client->request('GET', '/contacts?id=' . rawurlencode($id));
     }
 
-    public function update(string $id, array $data): array
+    public function update(string $email, array $data): array
     {
-        return $this->client->request('PATCH', "/contacts/{$id}", $data);
+        return $this->client->request('PATCH', '/contacts', $data + ['email' => $email]);
     }
 
     public function delete(string $id): array
     {
-        return $this->client->request('DELETE', "/contacts/{$id}");
+        return $this->client->request('DELETE', '/contacts?id=' . rawurlencode($id));
     }
 
     public function import(array $data): array

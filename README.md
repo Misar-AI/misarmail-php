@@ -23,15 +23,15 @@ client-side limit checking — the server decides, and the SDK surfaces its answ
 
 ## Quick start
 
-```bash
+```php
 <?php
 use MisarMail\Client;
 
 $mail = new Client('msk_your_key');
 
 $mail->email->send([
-    'from'    => 'you@yourdomain.com',
-    'to'      => ['someone@example.com'],
+    'from'    => ['email' => 'you@yourdomain.com'],
+    'to'      => [['email' => 'someone@example.com']],
     'subject' => 'Hello',
     'html'    => '<p>Hi there</p>',
 ]);
@@ -41,21 +41,33 @@ $contacts = $mail->contacts->list();
 
 ## Plan limits
 
-A spent allowance answers `429` and a feature that is not on the plan answers
-`402`; both carry `code: "plan_limit_exceeded"`. The SDK raises
+Both a spent allowance and a feature that is not on the plan answer **`403`**,
+carrying `code: "plan_limit_exceeded"`. The SDK keys on that code rather than
+the status, which is why a refusal is typed correctly even though 403 is
+otherwise an authorization failure. The SDK raises
 `PlanLimitError` for either, and **does not retry** it — retrying cannot
 help until the allowance resets or the plan changes. Read ``$upgradeUrl`` to
 send the user somewhere useful.
 
-`GET /plan` reports the plan, its allowances and per-feature usage, so an
-expensive call can be checked before it is attempted rather than after it is
-refused.
+`GET /plan` returns `plan`, `sending` (the per-day and per-month email caps),
+`usage` — an array with one entry per metered feature, each carrying `used`,
+`limit` and `remaining` — and `upgrade`, which is null until a quota is tight.
+A null `limit` means unlimited, and `remaining` is null alongside it rather than
+0. Read it before an expensive call rather than discovering the ceiling through
+a refusal.
 
-```bash
+The key needs the `read` or `subscription` scope.
+
+```php
 $plan = $mail->plan->get();
 
 try {
-    $mail->campaigns->create(['name' => 'Blast']);
+    $mail->campaigns->create([
+        'name'      => 'Blast',
+        'subject'   => 'We just shipped',
+        'fromName'  => 'Your Name',
+        'fromEmail' => 'you@yourdomain.com',
+    ]);
 } catch (MisarMail\PlanLimitError $e) {
     fwrite(STDERR, "{$e->feature} exhausted on {$e->plan}: {$e->upgradeUrl}\n");
 }
@@ -75,7 +87,7 @@ Frames are unnamed (`data: {…}`) and the stream ends with `data: [DONE]`, whic
 the SDK consumes rather than handing on. A stream is never retried: replaying one
 that failed mid-flight would duplicate whatever you had already read.
 
-```bash
+```php
 $mail->streaming->generateEmail(['prompt' => 'a launch email'],
     function (MisarMail\StreamEvent $e) {
         echo $e->data['delta'] ?? '';

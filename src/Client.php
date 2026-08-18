@@ -28,7 +28,6 @@ class Client
     public readonly TemplatesResource    $templates;
     public readonly AutomationsResource  $automations;
     public readonly DomainsResource      $domains;
-    public readonly AliasesResource      $aliases;
     public readonly DedicatedIpsResource $dedicatedIps;
     public readonly AbTestsResource      $abTests;
     public readonly SandboxResource      $sandbox;
@@ -40,7 +39,6 @@ class Client
     public readonly WebhooksResource     $webhooks;
     public readonly UsageResource        $usage;
     public readonly BillingResource      $billing;
-    public readonly WorkspacesResource   $workspaces;
 
     private const BASE_URL      = 'https://api.misar.io/mail/v1';
     /** Host for routes outside /v1 — both streaming endpoints live there. */
@@ -95,7 +93,6 @@ class Client
         $this->templates    = new TemplatesResource($this);
         $this->automations  = new AutomationsResource($this);
         $this->domains      = new DomainsResource($this);
-        $this->aliases      = new AliasesResource($this);
         $this->dedicatedIps = new DedicatedIpsResource($this);
         $this->abTests      = new AbTestsResource($this);
         $this->sandbox      = new SandboxResource($this);
@@ -107,7 +104,6 @@ class Client
         $this->webhooks     = new WebhooksResource($this);
         $this->usage        = new UsageResource($this);
         $this->billing      = new BillingResource($this);
-        $this->workspaces   = new WorkspacesResource($this);
     }
 
     /**
